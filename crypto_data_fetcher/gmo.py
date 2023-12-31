@@ -75,13 +75,17 @@ class GmoFetcher:
             if df is not None:
                 if interval_sec is not None:
                     df['timestamp'] = df['timestamp'].dt.floor('{}S'.format(interval_sec))
+                    grouped = df.groupby('timestamp')
+                    op = grouped['price'].nth(0)
+                    cl = grouped['price'].nth(-1)
+                    op.index = cl.index = grouped.indices
                     df = pd.concat([
-                        df.groupby('timestamp')['price'].nth(0).rename('op'),
-                        df.groupby('timestamp')['price'].max().rename('hi'),
-                        df.groupby('timestamp')['price'].min().rename('lo'),
-                        df.groupby('timestamp')['price'].nth(-1).rename('cl'),
-                        df.groupby('timestamp')['size'].sum().rename('volume'),
-                    ], axis=1)
+                        op,
+                        grouped['price'].max(),
+                        grouped['price'].min(),
+                        cl,
+                        grouped['size'].sum(),
+                    ], axis=1, keys=["op", "hi", "lo", "cl", "volume"])
 
                 dfs.append(df)
 
