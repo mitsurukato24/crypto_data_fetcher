@@ -19,6 +19,8 @@ def url_read_csv(url):
     try:
         time.sleep(1)
         df = pd.read_csv(url)
+        if len(df) == 0:
+            return None
         df = df.rename(columns={
             'symbol': 'market',
         })
